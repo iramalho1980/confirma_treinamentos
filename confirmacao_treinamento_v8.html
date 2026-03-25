@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmador de Treinamento - Thomson Reuters</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(15px);
+            --text-color: #ffffff;
+            --accent-color: #3498db;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --tr-orange-soft: #ff9933;
+            --tr-gray-soft: #666666;
+            --tr-blue-soft: #5dade2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Ubuntu', sans-serif;
+            font-weight: 300;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #2c3e50;
+            background: -webkit-linear-gradient(to right, #3498db, #2c3e50);
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+            overflow-x: hidden;
+            padding: 40px 20px;
+        }
+
+        /* Glassmorphism Premium */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+            padding: 35px;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal Premium */
+        #initial-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            width: 480px;
+            max-width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Layout */
+        .container {
+            width: 100%;
+            max-width: 950px;
+            display: none; 
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        h2 {
+            font-weight: 400;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 20px;
+            font-size: 1.6rem;
+            text-align: center;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        input {
+            width: 100%;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1.5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-add {
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            padding: 10px 20px;
+            font-size: 0.75rem;
+        }
+
+        .btn-add:hover {
+            background: rgba(46, 204, 113, 0.3);
+        }
+
+        /* Recipient List */
+        .recipient-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 50px;
+            gap: 15px;
+            margin-bottom: 15px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .btn-remove {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            transition: all 0.2s;
+        }
+
+        .btn-remove:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        /* Email Preview */
+        .email-preview-container {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 18px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .email-preview {
+            white-space: pre-wrap;
+            line-height: 1.8;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 30px;
+        }
+
+        /* Assinatura Visual no HTML - Cores Modernas e Suaves */
+        .signature-visual {
+            background: rgba(255, 255, 255, 0.95);
+            color: #444;
+            padding: 25px;
+            border-radius: 12px;
+            font-family: 'Ubuntu', sans-serif;
+            font-size: 13px;
+            line-height: 1.5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .signature-visual .name { font-size: 16px; color: #2c3e50; font-weight: 500; margin-bottom: 4px; }
+        .signature-visual .role { font-size: 14px; font-weight: 300; color: #5dade2; margin-bottom: 12px; display: block; }
+        .signature-visual .company { color: #ff9933; font-weight: 500; margin-bottom: 12px; display: block; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .signature-visual .contact { color: #666; margin-bottom: 12px; font-weight: 300; }
+        .signature-visual .links { margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
+        .signature-visual .links a { color: #5dade2; text-decoration: none; display: block; margin-bottom: 6px; transition: color 0.2s; }
+        .signature-visual .links a:hover { color: #2980b9; }
+
+        /* Grid */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        /* Utility */
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Popup Inicial -->
+    <div id="initial-modal">
+        <div class="glass-card modal-content">
+            <h2>Dados do Treinamento</h2>
+            <div class="form-group">
+                <label>Empresa</label>
+                <input type="text" id="pop-empresa" placeholder="Nome da Empresa">
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Data</label>
+                    <input type="date" id="pop-data">
+                </div>
+                <div class="form-group">
+                    <label>Horário</label>
+                    <input type="time" id="pop-hora">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Módulo do Treinamento</label>
+                <input type="text" id="pop-modulo" placeholder="Ex: Contabilidade, Fiscal...">
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="setupApp()">Configurar E-mail</button>
+        </div>
+    </div>
+
+    <!-- Container Principal -->
+    <div class="container" id="main-app">
+        
+        <!-- Quadro E-MAIL -->
+        <div class="glass-card">
+            <div class="section-header">
+                <div class="section-title">Quadro E-MAIL</div>
+                <button class="btn btn-add" onclick="addRecipient()">+ Adicionar CC</button>
+            </div>
+            <div id="recipients-container">
+                <div class="recipient-row">
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: 10px; top: -10px; font-size: 0.6rem; color: var(--accent-color);">PARA</span>
+                        <input type="text" placeholder="Nome" class="rec-name">
+                    </div>
+                    <input type="email" placeholder="E-mail principal" class="rec-email">
+                    <div></div>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 30px;">
+                <label>Assunto Automático</label>
+                <input type="text" id="email-subject" readonly style="background: rgba(0,0,0,0.2); cursor: default;">
+            </div>
+        </div>
+
+        <!-- Quadro LINK -->
+        <div class="glass-card">
+            <div class="section-title">Link do Microsoft Teams</div>
+            <div class="form-group" style="margin-top: 15px;">
+                <input type="url" id="teams-link" placeholder="Cole aqui o link da sala..." oninput="updatePreview()">
+            </div>
+        </div>
+
+        <!-- Quadro CORPO -->
+        <div class="glass-card">
+            <div class="section-title">Visualização do E-mail</div>
+            <div class="email-preview-container" style="margin-top: 20px;">
+                <div class="email-preview" id="email-body-preview"></div>
+                
+                <div class="signature-visual">
+                    <div class="name">Ivan Alves Ramalho</div>
+                    <div class="role">Especialista de Implantação e Treinamentos</div>
+                    <div class="company">Thomson Reuters</div>
+                    <div class="contact">Celular: +55 (11) 99664-9967</div>
+                    <div class="links">
+                        <a href="mailto:ivan.ramalho@thomsonreuters.com">ivan.ramalho@thomsonreuters.com</a>
+                        <a href="http://www.dominisistemas.com.br" target="_blank">www.dominisistemas.com.br</a>
+                        <a href="http://www.instagram.com/thomsonreuters.dominio" target="_blank">www.instagram.com/thomsonreuters.dominio</a>
+                        <a href="http://www.facebook.com/solucoesdominio" target="_blank">www.facebook.com/solucoesdominio</a>
+                        <a href="http://www.linkedin.com/showcase/thomson-reuters-domínio" target="_blank">www.linkedin.com/showcase/thomson-reuters-domínio</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-actions">
+            <button class="btn btn-primary" style="padding: 20px 60px; font-size: 1.1rem;" onclick="sendEmails()">
+                <span>🚀</span> Abrir no Outlook
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let trainingData = {
+            empresa: '',
+            data: '',
+            dataFormatted: '',
+            modulo: '',
+            hora: ''
+        };
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '[ dd/mm/aaaa ]';
+            const parts = dateStr.split('-');
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function setupApp() {
+            trainingData.empresa = document.getElementById('pop-empresa').value || 'Empresa';
+            trainingData.data = document.getElementById('pop-data').value;
+            trainingData.dataFormatted = formatDate(trainingData.data);
+            trainingData.modulo = document.getElementById('pop-modulo').value || 'Módulo';
+            trainingData.hora = document.getElementById('pop-hora').value || '00:00';
+
+            const subject = `Confirmação da Realização do treinamento na data [ ${trainingData.dataFormatted} ] às ${trainingData.hora} - Módulo ${trainingData.modulo} | ${trainingData.empresa}`;
+            document.getElementById('email-subject').value = subject;
+
+            document.getElementById('initial-modal').classList.add('hidden');
+            document.getElementById('main-app').style.display = 'flex';
+            
+            updatePreview();
+        }
+
+        function addRecipient() {
+            const container = document.getElementById('recipients-container');
+            const row = document.createElement('div');
+            row.className = 'recipient-row';
+            row.innerHTML = `
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 10px; top: -10px; font-size: 0.6rem; color: var(--secondary-color);">CC</span>
+                    <input type="text" placeholder="Nome" class="rec-name">
+                </div>
+                <input type="email" placeholder="E-mail CC" class="rec-email">
+                <button class="btn-remove" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function updatePreview() {
+            const teamsLink = document.getElementById('teams-link').value || '[ LINK DO TEAMS ]';
+            const body = `Olá, tudo bem?
+
+Meu nome é Ivan e sou Especialista de treinamentos da Thomson Reuters | Domínio Sistemas
+
+Estou entrando em contato para saber se podemos confirmar para a data: ${trainingData.dataFormatted} às ${trainingData.hora} o treinamento do módulo: ${trainingData.modulo}
+
+Caso não puder realizar, retorne o quanto antes para reagendamento
+Conforme política de trabalho da Thomson Reuters os treinamentos devem ser cancelados com no mínimo 48h. úteis de antecedência.
+Caso não for feito pode acarretar no consumo das horas de treinamento.
+
+Para acessar a sala teams na data confirmada acesse o link: ${teamsLink}
+
+At.te`;
+            
+            document.getElementById('email-body-preview').innerText = body;
+        }
+
+        function sendEmails() {
+            const subject = encodeURIComponent(document.getElementById('email-subject').value);
+            
+            const signatureText = `\n\nAt.te\n\nIvan Alves Ramalho\nEspecialista de Implantação e Treinamentos\n\nThomson Reuters\n\nCelular: +55 (11) 99664-9967\n\nivan.ramalho@thomsonreuters.com\nwww.dominisistemas.com.br\nwww.instagram.com/thomsonreuters.dominio\nwww.facebook.com/solucoesdominio\nwww.linkedin.com/showcase/thomson-reuters-domínio`;
+            
+            const bodyContent = document.getElementById('email-body-preview').innerText;
+            const cleanBody = bodyContent.replace("At.te", "");
+            const body = encodeURIComponent(cleanBody + signatureText);
+            
+            const rows = document.querySelectorAll('.recipient-row');
+            let toEmail = "";
+            let ccEmails = [];
+            
+            rows.forEach((row, index) => {
+                const email = row.querySelector('.rec-email').value;
+                if (email) {
+                    if (index === 0) {
+                        toEmail = email;
+                    } else {
+                        ccEmails.push(email);
+                    }
+                }
+            });
+
+            if (!toEmail) {
+                alert('Por favor, insira ao menos o e-mail principal (Para).');
+                return;
+            }
+
+            const ccParam = ccEmails.length > 0 ? `&cc=${ccEmails.join(';')}` : '';
+            const mailtoUrl = `mailto:${toEmail}?subject=${subject}${ccParam}&body=${body}`;
+            
+            window.location.href = mailtoUrl;
+        }
+    </script>
+</body>
+</html>
